@@ -100,8 +100,7 @@ Drush Make and Simpletest support has been sponsored by [DBC](http://www.dbc.dk/
 </a>
 -->
 
-<!-- *Do not use any later versions than 2.4.12 due to [a bug in Phing](http://www.phing.info/trac/ticket/958)*. -->
-<project name="phing-drupal" default="build" phingVersion="2.4.11">
+<project name="phing-drupal" default="build">
 
 <!-- ## Main targets -->
 

@@ -194,7 +194,7 @@ Build the modules, libraries and themes for this profile.
         <drush command="make" assume="yes">
           <option name="no-core"/>
           <option name="contrib-destination">.</option>
-          <param>makefiles/mvpcreator.make</param>
+          <param>${drush.make.file}</param>
           <option name="concurrency">${drush.make.concurrency}</option>
         </drush>
 
@@ -221,25 +221,39 @@ Force a rebuild of the modules, libraries and themes for this profile.
 
 Makes the full site at ${project.drupal.dir}.
 -->
-  <target name="make-site"
+  <target name="make-drupal"
           depends="init, make-profile"
           description="Makes the full site at ${project.drupal.dir}."
-          unless="project.make-site.skip">
+          unless="project.make-drupal.skip">
     <if>
       <not><available file="${project.drupal.dir}" type="dir"/></not>
       <then>
 
-        <drush command="make" assume="yes">
-          <param>drupal-org-core.make</param>
-          <param>${project.drupal.dir}</param>
-        </drush>
-
-        <symlink target="${project.basedir}" link="${project.drupal.dir}/profiles/${project.name}" />
-
-        <!-- Set property to prevent target from being executed multiple times -->
-        <property name="project.make-site.skip" value="true"/>
+        <if>
+          <available file="${drush.make.core}" type="file"/>
+          <then>
+            <!-- Use the drupal-org-core.make provided by the distribution. -->
+            <drush command="make" assume="yes">
+              <param>${drush.make.core}</param>
+              <param>${project.drupal.dir}</param>
+            </drush>
+          </then>
+          <else>
+            <!-- No drupal-org-core.make provided, just pull in a vanilla Drupal version. -->
+            <drush command="dl" assume="yes">
+              <param>drupal-${drupal.version}</param>
+              <option name="destination">${project.drupal.dir.dirname}</option>
+              <option name="drupal-project-rename">${project.drupal.dir.basename}</option>
+            </drush>
+          </else>
+        </if>
       </then>
     </if>
+
+    <symlink target="${project.basedir}" link="${project.drupal.dir}/profiles/${phing.project.name}" />
+
+    <!-- Set property to prevent target from being executed multiple times -->
+    <property name="project.make-drupal.skip" value="true"/>
   </target>
 
 <!-- ### PHP linting
@@ -1071,18 +1085,15 @@ This is part of the initialization of the build. This target should only be
 called from `init` target. -->
   <target name="setup-dirs"
           depends="load-properties">
-    <if>
-      <isset property="drupal.make.dir"/>
-      <then>
-        <property name="project.drupal.dir"
-                value="${project.basedir}/${drupal.make.dir}" />
-      </then>
-      <else>
-        <property name="project.drupal.dir"
-                value="${project.basedir}" />
-      </else>
-    </if>
 
+    <property name="project.drupal.dir"
+              value="${drupal.dir}" />
+    <php function="dirname" returnProperty="project.drupal.dir.dirname">
+      <param value="${project.drupal.dir}"/>
+    </php>
+    <php function="basename" returnProperty="project.drupal.dir.basename">
+      <param value="${project.drupal.dir}"/>
+    </php>
     <property name="project.sitesdir"
               value="${project.drupal.dir}/${project.code.dir}" />
     <property name="project.builddir"

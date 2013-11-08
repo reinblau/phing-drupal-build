@@ -115,7 +115,7 @@ This is the default build target.
 Do not run `docs` for now. Generating documentation eats up memory and build
 time and is largely obsolete when using GitHub. -->
   <target name="build" depends="init,
-                                clean,
+                                make-profile,
                                 verify,
                                 analyze" />
 
@@ -123,7 +123,7 @@ time and is largely obsolete when using GitHub. -->
 
 Make sure that our code is clean and functional. -->
   <target name="verify" depends="init,
-                                 clean,
+                                 make-profile,
                                  lint-php-custom,
                                  lint-js-custom,
                                  lint-css-custom,
@@ -137,7 +137,7 @@ Perform static analysis of the code to generate statistics, identify potential
 problems and opportunities for refactorings and make sure that the code
 complies with coding standards. -->
   <target name="analyze" depends="init,
-                                  clean,
+                                  make-profile,
                                   phploc,
                                   phpmd,
                                   phpcpd">
@@ -171,6 +171,77 @@ These targets can be executed individually or grouped unless explicitly
 stated as a part of the task.
 
 **As a rule targets without descriptions should not be executed directly.** -->
+
+<!-- ### Drush Make the profile
+
+Build the modules, libraries and themes for this profile.
+-->
+  <target name="make-profile"
+          depends="init"
+          description="Build the modules, libraries and themes for this profile."
+          unless="project.make-profile.skip">
+    <if>
+      <or>
+        <!-- TODO: we should be able to do better than this... -->
+        <not><available file="${project.basedir}/modules/contrib" type="dir"/></not>
+        <not><available file="${project.basedir}/modules/panopoly" type="dir"/></not>
+        <and>
+          <isset property="project.make-profile.rebuild"/>
+          <istrue value="${project.make-profile.rebuild}"/>
+        </and>
+      </or>
+      <then>
+
+        <drush command="make" assume="yes">
+          <option name="no-core"/>
+          <option name="contrib-destination">.</option>
+          <param>makefiles/mvpcreator.make</param>
+          <option name="concurrency">${drush.make.concurrency}</option>
+        </drush>
+
+        <!-- Set property to prevent target from being executed multiple times -->
+        <property name="project.make-profile.skip" value="true"/>
+      </then>
+    </if>
+  </target>
+
+<!-- ### Drush Make the profile (again)
+
+Force a rebuild of the modules, libraries and themes for this profile.
+-->
+  <target name="rebuild-profile"
+          depends="init"
+          description="Force a rebuild of the modules, libraries and themes for this profile.">
+
+    <phingcall target="make-profile">
+      <property name="project.make-profile.rebuild" value="1"/>
+    </phingcall>
+  </target>
+
+<!-- ### Drush Make the full site
+
+Makes the full site at ${project.drupal.dir}.
+-->
+  <target name="make-site"
+          depends="init, make-profile"
+          description="Makes the full site at ${project.drupal.dir}."
+          unless="project.make-site.skip">
+    <if>
+      <not><available file="${project.drupal.dir}" type="dir"/></not>
+      <then>
+
+        <drush command="make" assume="yes">
+          <param>drupal-org-core.make</param>
+          <param>${project.drupal.dir}</param>
+        </drush>
+
+        <symlink target="${project.basedir}" link="${project.drupal.dir}/profiles/${project.name}" />
+
+        <!-- Set property to prevent target from being executed multiple times -->
+        <property name="project.make-site.skip" value="true"/>
+      </then>
+    </if>
+  </target>
 
 <!-- ### PHP linting
 
@@ -909,7 +980,7 @@ This target sets up many of the common resources used throughout the build.
 All other targets except dependencies for this target should depend on this
 unless specifically stated why. -->
   <target name="init"
-          depends="load-properties, setup-dirs, make, setup-filesets"
+          depends="load-properties, setup-dirs, setup-filesets, setup-phing-drush"
           unless="project.initialized">
     <!-- Set property to prevent target from being executed multiple times -->
     <property name="project.initialized" value="true"/>
@@ -1031,85 +1102,6 @@ called from `init` target. -->
               value="${project.behatdir}/features" />
     <property name="project.configdir"
               value="${project.behatdir}/config" />
-  </target>
-
-<!-- ### Drush Make
-
-Download and install the source code for the site using Drush Make.
-
-This target is only executed if the project uses make files as configured
-in the `build.properties` file. Execution can also be skipped by setting the
-`project.make.skip` property from the command line or in other targets.
-
-This is part of the initialization of the build. This target should only be
-called from `init` target. -->
-  <target name="make"
-          depends="load-properties, setup-phing-drush"
-          if="drupal.make.file">
-    <if>
-      <or>
-        <not><isset property="project.make.skip"/></not>
-        <not><istrue value="${project.make.skip}"/></not>
-      </or>
-      <then>
-        <!-- Delete any prexisting builds -->
-        <delete dir="${project.drupal.dir}"/>
-
-        <!-- If the make file does not include a core Drupal project we need
-             to download one separately. This should be defined in
-             `build.properties`. -->
-        <if>
-          <and>
-            <isset property="drupal.make.nocore"/>
-            <istrue value="${drupal.make.nocore}"/>
-          </and>
-          <then>
-            <!-- Download the appropriate version of Drupal -->
-            <drush command="dl" assume="yes">
-              <param>drupal-${drupal.version}</param>
-              <option name="drupal-project-rename">${drupal.make.dir}</option>
-            </drush>
-
-            <!-- Make the project in the project code directory. If using
-                 a directory inside the `sites` folder modules can be tested
-                 faster and easier when using the minimal profile. -->
-            <drush command="make" assume="yes">
-              <param>${drupal.make.file}</param>
-              <option name="contrib-destination">${drupal.make.dir}/${project.code.dir}</option>
-              <option name="no-core"/>
-            </drush>
-
-            <!-- Copy the install profile bundled with the make file to the
-                 appropriate directory. -->
-            <copy todir="${project.drupal.dir}/profiles/${drupal.profile}/">
-              <fileset dir="${project.basedir}">
-                <exclude name="${drupal.make.dir}/**" />
-                <exclude name="build/**" />
-                <exclude name="coverage/**" />
-                <exclude name="logs/**" />
-                <exclude name="tests/**" />
-                <exclude name="tools/**" />
-              </fileset>
-            </copy>
-          </then>
-          <else>
-            <drush command="make" assume="yes">
-              <param>${drupal.make.file}</param>
-              <param>${drupal.make.dir}</param>
-            </drush>
-          </else>
-        </if>
-
-        <!-- Set property to prevent target from being executed multiple times -->
-        <property name="project.make.skip" value="true"/>
-      </then>
-      <else>
-        <echo>
-          Skipping drush make.${line.separator}
-          drupal.make.skip has been set to ${project.make.skip}.
-        </echo>
-      </else>
-    </if>
   </target>
 
 <!-- ### Setup file sets
@@ -1261,6 +1253,8 @@ such as apache running the webserver the necessary permissions. -->
     <delete dir="${project.coveragedir}"/>
     <delete dir="${project.logdir}"/>
     <delete dir="${project.testdir}"/>
+    <!-- TODO: if we're using Aegir, we need to remove the platform first. -->
+    <delete dir="${project.drupal.dir}"/>
     <!-- Verbose. We need to make sure any database is deleted. Reinstalling
          the site with an existing database causes the build to fail. -->
     <delete file="${project.drupal.dir}/database.sqlite" verbose="true" />

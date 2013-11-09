@@ -122,6 +122,7 @@ time and is largely obsolete when using GitHub. -->
 
 Make sure that our code is clean and functional. -->
   <target name="verify" depends="init,
+                                 verify-makefile,
                                  make-profile,
                                  lint-php-custom,
                                  lint-js-custom,
@@ -254,6 +255,27 @@ Makes the full site at ${project.drupal.dir}.
 
     <!-- Set property to prevent target from being executed multiple times -->
     <property name="project.make-drupal.skip" value="true"/>
+  </target>
+
+<!-- ### Verify Drush make file for Drupal.org
+
+Check Drush make files for compatibility with Drupal.org. -->
+  <target name="verify-makefile"
+          description="Check Drush make files for compatibility with Drupal.org."
+          depends="init">
+    <!-- TODO: This should setup 'drupalorg_drush' automatically -->
+    <!-- TODO: This should generate the final makefile before verifying -->
+    <drush command="verify-makefile">
+      <param>${drush.make.file}</param>
+    </drush>
+    <if>
+      <available file="${drush.make.core}" type="file"/>
+      <then>
+        <drush command="verify-makefile">
+          <param>${drush.make.core}</param>
+        </drush>
+      </then>
+    </if>
   </target>
 
 <!-- ### PHP linting

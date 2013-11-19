@@ -694,7 +694,7 @@ coder-review-d7.
 No need to run `init` here. This target should only be called from parent
 `coder-review-*` targets. -->
   <target name="coder-review"
-          depends="setup-phing-drush">
+          depends="setup-phing-drush, deploy">
     <!-- Get a list of modules and themes matching the project prefix.
          These are the ones we are going to review. -->
     <drush command="pm-list" pipe="true" returnProperty="projects" />
@@ -731,10 +731,10 @@ No need to run `init` here. This target should only be called from parent
     <!-- Execute coder review and output results in XML format-->
     <drush command="${coder.review.command}" assume="yes"
            pipe="yes" returnProperty="xml">
-      <param>no-empty</param>
-      <param>checkstyle</param>
-      <param>minor</param>
-      <param>${coder.review.type}</param>
+      <option name="no-empty"/>
+      <option name="checkstyle"/>
+      <option name="minor"/>
+      <option name="${coder.review.type}"/>
       <!-- Review all the modules and themes matching the project prefix -->
       <param>${project.code.projects}</param>
       <!-- Review additional modules which do not match the prefix -->
@@ -1326,7 +1326,19 @@ Configuration of which installation profile and how to deploy are in done in
       <elseif>
         <equals arg1="${deploy.type}" arg2="aegir"/>
         <then>
-          <phingcall target="deploy-aegir" />
+          <phingcall target="deploy-aegir">
+            <property name="drush.bin" value="${deploy.aegir.drush}"/>
+          </phingcall>
+
+          <!-- Now that the site is installed, we need to set drush.uri so that drush
+               commands against the site succeeed. 
+
+               TODO: this really should set drush.alias so that more complex Aegir
+               configurations will work, but that isn't yet supported:
+
+                 https://drupal.org/node/2139219
+            -->
+          <property name="drush.uri" value="${drupal.uri}"/>
         </then>
       </elseif>
 
@@ -1430,7 +1442,6 @@ It will use the platform and site names specified in `build.properties`. -->
         </drush>
       </then>
     </if>
-     
 
     <!-- Set property to prevent target from being executed multiple times -->
     <property name="project.deployed.aegir" value="true"/>
@@ -1463,7 +1474,7 @@ It will use the platform name specified in `build.properties`. -->
 
   <!-- ### Download and enable a project/module -->
   <target name="enable-module"
-          depends="setup-phing-drush">
+          depends="setup-phing-drush, deploy">
     <!-- If project is not set then we assume that the module name is also
          the project name. -->
     <property name="project" value="${module}" override="no"/>

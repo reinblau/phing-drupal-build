@@ -791,6 +791,27 @@ Consequently `coder-review-d6/7` and not `phpcs` is used for the main targets.
             logoutput="true" />
     </target>
 
+<!-- ### Run Behat tests.
+
+Will run the Behat feature tests found in ${behat.features.dir} using the given
+config.
+-->
+    <target name="behat"
+            description="Run all Behat tests"
+            depends="setup-composer, deploy">
+      <copy file="${project.behat.template}" tofile="${project.behat.config}">
+        <filterchain>
+          <replacetokens begintoken="${" endtoken="}">
+            <token key="drupal.uri" value="${drupal.uri}"/>
+            <token key="drush.root" value="${drush.root}"/>
+            <token key="drush.uri" value="${drush.uri}"/>
+          </replacetokens>
+        </filterchain>
+      </copy>
+      <exec command="${project.toolsdir}/bin/behat -c ${project.behat.config} -f junit --out ${project.testdir}"
+            dir="${project.behatdir}" passthru="true" />
+    </target>
+
   <!-- ### Run simpletests
 
 Execution of this target can be skipped by setting the
@@ -1014,6 +1035,12 @@ called from `init` target. -->
               value="${project.builddir}/logs" />
     <property name="project.testdir"
               value="${project.builddir}/tests" />
+    <property name="project.behatdir"
+              value="${project.basedir}/${behat.dir}" />
+    <property name="project.behat.template"
+              value="${project.behatdir}/${behat.config.template}" />
+    <property name="project.behat.config"
+              value="${project.behatdir}/${behat.config.file}" />
   </target>
 
 <!-- ### Setup file sets
@@ -1485,6 +1512,23 @@ It will use the platform name specified in `build.properties`. -->
      <!-- Set property to prevent unnecessary additional invocations of this
           target -->
      <property name="project.rhino.setup" value="true" />
+   </target>
+
+   <!-- ### Setup Composer and use it to install our dependencies -->
+   <target name="setup-composer"
+           depends="setup-dirs" >
+     <if>
+       <not>
+         <available file="${project.toolsdir}/composer.phar"/>
+       </not>
+       <then>
+         <php expression="$argv = array('--install-dir', '${project.toolsdir}'); eval('?>'.file_get_contents('https://getcomposer.org/installer'))" />
+       </then>
+     </if>
+     <copy file="${project.builddir}/composer.json" todir="${project.toolsdir}" />
+     <composer command="install" composer="${project.toolsdir}/composer.phar">
+       <arg value="--working-dir=${project.toolsdir}"/>
+     </composer>
    </target>
 
    <!-- ### Build documentation using Phrocco

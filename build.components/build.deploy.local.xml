@@ -1,0 +1,37 @@
+<!-- ### Setup a site
+
+This initializes a Drupal site using a installation profile.
+
+Configuration of which installation profile and database to use in done in
+`build.properties`. -->
+<target name="deploy-local"
+        depends="init, setup-phing-drush"
+        unless="project.deployed.local">
+
+  <!-- Symlink Files -->
+  <echo>Symlinking files folder ${project.basedir}/sites/default/files -> ${project.files.directory} </echo>
+  <symlink target="${project.files.directory}" link="${project.basedir}/sites/default/files" />
+
+  <!-- Copy DB -->
+  <echo>Copying Database ${project.db.database} to ${project.db.database}_test</echo>
+  <exec command="mysql -u ${project.db.user} -p${project.db.password} -e 'create database ${project.db.database}_test'" />
+  <exec command="mysqldump -u ${project.db.user} -p${project.db.password} ${project.db.database} | mysql -u ${project.db.user} -p${project.db.password} ${project.db.database}_test" />
+
+  <!-- Setup settings.php -->
+  <echo>Writing to settings.php</echo>
+  <copy file="${project.basedir}/sites/default/default.settings.php" tofile="${project.basedir}/sites/default/settings.php" overwrite="true">
+    <filterchain>
+      <replaceregexp>
+        <regexp pattern="\$databases = array\(\);" replace="$databases['default']['default'] = array('database' => '${project.db.database}_test','username' => '${project.db.user}','password' => '${project.db.password}','host' => 'localhost','driver' => 'mysql','prefix' => '');" />
+      </replaceregexp>
+    </filterchain>
+  </copy>
+
+  <!-- Run db updates -->
+  <echo>Running Database updates</echo>
+  <drush command="updb" assume="yes" />
+
+  <!-- Set a property to indicate the site's been setup -->
+  <property name="project.deployed.local" value="true" />
+
+</target>

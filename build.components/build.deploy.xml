@@ -1,0 +1,57 @@
+<!-- ### (deprecated) Deploy a Drupal site
+
+This is an alias for 'deploy' provided for backward compatibility.
+
+Please use 'deploy' instead! -->
+<target name="site-install" depends="deploy" hidden="true" />
+
+<!-- ### Deploy a Drupal site
+
+This will install a Drupal site for a given installation profile.
+
+Configuration of which installation profile and how to deploy are in done in
+`build.properties`. -->
+<target name="deploy"
+        depends="init, setup-phing-drush"
+        unless="project.installed">
+
+  <if>
+    <equals arg1="${deploy.type}" arg2="drush"/>
+    <then>
+      <phingcall target="deploy-drush" />
+    </then>
+
+    <elseif>
+      <equals arg1="${deploy.type}" arg2="local"/>
+      <then>
+        <phingcall target="deploy-local"/>
+      </then>
+    </elseif>
+
+    <elseif>
+      <equals arg1="${deploy.type}" arg2="aegir"/>
+      <then>
+        <phingcall target="deploy-aegir">
+          <property name="drush.bin" value="${deploy.aegir.drush}"/>
+        </phingcall>
+
+        <!-- Now that the site is installed, we need to set drush.uri so that drush
+             commands against the site succeeed.
+
+             TODO: this really should set drush.alias so that more complex Aegir
+             configurations will work, but that isn't yet supported:
+
+             https://drupal.org/node/2139219
+        -->
+        <property name="drush.uri" value="${drupal.uri}"/>
+      </then>
+    </elseif>
+
+    <else>
+      <fail msg="Unknown deploy.type = ${deploy.type}" />
+    </else>
+  </if>
+
+  <!-- Set property to prevent target from being executed multiple times -->
+  <property name="project.installed" value="true"/>
+</target>

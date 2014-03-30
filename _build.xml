@@ -1,0 +1,84 @@
+
+<!-- ## Main targets
+  These are the main targets that will build the project.
+  Include this file in your build.xml file for an easy build or, copy
+  and paste the code and customize as needed.
+-->
+
+<!-- ### Build project
+
+Do a complete build of the project by verifying code consistency and and
+performing static analysis of the code.
+
+This is the default build target.
+
+Do not run `docs` for now. Generating documentation eats up memory and build
+time and is largely obsolete when using GitHub. -->
+<target name="build" depends="init,
+                              clean,
+                              verify,
+                              analyze" />
+
+<!-- ### Verify code consistency
+
+Make sure that our code is clean and functional. -->
+<target name="verify" depends="init,
+                               clean,
+                               lint-php-custom,
+                               lint-js-custom,
+                               lint-css-custom,
+                               check-php-debug,
+                               check-js-debug,
+                               simpletest"/>
+
+<!-- ### Analyze code
+
+Perform static analysis of the code to generate statistics, identify potential
+problems and opportunities for refactorings and make sure that the code
+complies with coding standards. -->
+<target name="analyze" depends="init,
+                                clean,
+                                phploc,
+                                phpmd,
+                                phpcpd">
+  <!-- Moved inside target to support properties in target name -->
+  <phingcall target="coder-review-d${drupal.version}">
+    <!-- Run the target as if it was executed from the Drupal root
+         directory. -->
+    <property name="project.basedir" value="${project.drupal.dir}"/>
+    <!-- We already have a clean environment so avoid further cleaning. -->
+    <property name="project.cleaned" value="1"/>
+    <!-- Make will run again as a part of the `init` target. We already have
+         a working site so skip that. -->
+    <property name="project.make.skip" value="1"/>
+  </phingcall>
+</target>
+
+<!-- ### Generate documentation
+
+Generate HTML documentation and code browser for the project. -->
+<target name="docs" depends="init,
+                             clean,
+                             phpdoc,
+                             phpcb" />
+
+<!-- ### Include all components -->
+<import file="build.components/build.init.xml" />
+<import file="build.components/build.init.clean.xml" />
+<import file="build.components/build.init.filesets.xml" />
+<import file="build.components/build.init.make.xml" />
+<import file="build.components/build.init.properties.xml" />
+<import file="build.components/build.init.tools.xml" />
+<import file="build.components/build.init.utils.xml" />
+<import file="build.components/build.analyze.coder.xml" />
+<import file="build.components/build.analyze.csslint.xml" />
+<import file="build.components/build.analyze.debug.xml" />
+<import file="build.components/build.analyze.jslint.xml" />
+<import file="build.components/build.analyze.php.xml" />
+<import file="build.components/build.deploy.aegir.xml" />
+<import file="build.components/build.deploy.drush.xml" />
+<import file="build.components/build.deploy.local.xml" />
+<import file="build.components/build.deploy.xml" />
+<import file="build.components/build.docs.xml" />
+<import file="build.components/build.test.behat.xml" />
+<import file="build.components/build.test.simpletest.xml" />

@@ -6,7 +6,7 @@ Execution of this target can be skipped by setting the
   <target name="simpletest"
           description="Run all unit tests"
           depends="init, setup-phing-drush, deploy"
-          unless="project.simpletest.skip">
+          unless="simpletest.skip">
     <!-- Enable simpletest module. If using Drupal 6 the module will be
          downloaded as well. -->
     <phingcall target="enable-module">

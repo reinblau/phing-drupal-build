@@ -1,16 +1,13 @@
 <!-- ### Setup a site
 
-This initializes a Drupal site using a installation profile.
-
-Configuration of which installation profile and database to use in done in
-`build.properties`. -->
+Initializes a site that already exists locally. -->
 <target name="deploy-local"
         depends="init, setup-phing-drush"
         unless="project.deployed.local">
 
   <!-- Symlink Files -->
-  <echo>Symlinking files folder ${project.basedir}/sites/default/files -> ${project.files.directory} </echo>
-  <symlink target="${project.files.directory}" link="${project.basedir}/sites/default/files" />
+  <echo>Symlinking files folder ${project.basedir}/sites/default/files -> ${build.local.files.directory} </echo>
+  <symlink target="${build.local.files.directory}" link="${project.drupal.dir}/${project.code.dir}/files" />
 
   <!-- Copy DB -->
   <echo>Copying Database ${project.db.database} to ${project.db.database}_test</echo>

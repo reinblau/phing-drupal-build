@@ -7,7 +7,7 @@ environment such as which version of Drupal you are using, how to create a
 database and the names of your custom modules.
 
 All available properties are described and set to a default value in
-[`build.default.properties`](https://raw.github.com/reload/phing-drupal-template/master/build.default.properties).
+[`build.default.properties`]
 You should create your own properties file by copying the
 `build.default.properties` file to the root directory, rename it
 `build.properties` and modify it according to your project.
@@ -32,34 +32,35 @@ tools. -->
       <not><isset property="project.properties.loaded" /></not>
     </or>
     <then>
-      <!-- By default Jenkins runs Phing from the directory containing the build
-      file.  If this file is located in a subdirectory - e.g. when using Phing Drupal as a submodule - we need to reset the project basedir and reload properties.
 
-      NB: This only works if the subdirectory is directly within the Drupal
-      root directory. -->
+      <!-- By default Jenkins runs Phing from the directory containing the build
+      file. If the phing-drupal-build has been checked out as a submodule we'll
+      need to load the default properties file from a phing-drupal-build
+      sub directory. -->
       <if>
-        <!-- If `build.properties` exists then assume we have a
+        <!-- If `build.default.properties` exists then assume we have a
              project root directory -->
-        <available file="${project.basedir}/../build.properties"/>
+        <available file="${project.basedir}/build.default.properties"/>
         <then>
-          <resolvepath propertyName="project.basedir"
-                       file="${project.basedir}/../"/>
+          <property name="project.properties.file"
+                    value="${phing.dir}/build.default.properties" />
         </then>
+        <elseif>
+          <available file="${project.basedir}/phing-drupal-build/build.default.properties"/>
+          <then>
+            <property name="project.properties.file"
+                      value="${phing.dir}/phing-drupal-build/build.default.properties" />
+          </then>
+        </elseif>
+        <else>
+          <fail message="Could not locate default properties file: build.default.properties" />
+        </else>
       </if>
 
-      <!-- By default use default properties file
-           `build.default.properties` -->
-      <property name="project.properties.file"
-                value="${phing.dir}/build.default.properties" />
       <!-- Load the default properties.
            Override in case `load-properties` are called multiple times. -->
       <property file="${project.properties.file}" override="true" />
 
-      <!-- Allow override using `build.properties` in build file
-           directory -->
-      <available file="${phing.dir}/build.properties"
-                 property="project.properties.file"
-                 value="${phing.dir}/build.properties" />
       <!-- Allow override using `build.properties` in project base
            directory -->
       <available file="${project.basedir}/build.properties"
@@ -92,7 +93,7 @@ called from `init` target. -->
     </then>
     <else>
       <property name="project.drupal.dir"
-              value="${project.basedir}" />
+              value="${project.basedir}/${drupal.dir}" />
     </else>
   </if>
 

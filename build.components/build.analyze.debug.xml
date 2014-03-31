@@ -6,7 +6,8 @@ them in comments as well. -->
 
 <target name="check-php-debug"
         description="Check custom PHP code for debug statements"
-        depends="init, setup-check-debug-task">
+        depends="init, setup-check-debug-task"
+        unless="debug.php.skip">
   <phingcall target="check-debug">
     <property name="debug.language" value="PHP" override="true" />
     <property name="debug.pattern" value="var_dump\(|dsm\(|dpm\("
@@ -17,7 +18,8 @@ them in comments as well. -->
 
 <target name="check-js-debug"
         description="Check custom Javascript code for debug statements"
-        depends="init, setup-check-debug-task">
+        depends="init, setup-check-debug-task"
+        unless="debug.js.skip">
   <phingcall target="check-debug">
     <property name="debug.language" value="Javascript" override="true" />
     <property name="debug.pattern" value="console\.log\(" override="true" />
@@ -48,10 +50,10 @@ them in comments as well. -->
       <not>
         <equals arg1="${debug.lines}" arg2="" />
       </not>
-      <istrue value="${checkdebug.fail}"/>
+      <istrue value="${checkdebug.break}"/>
     </and>
     <then>
-      <echo level="error">${debug.language} debug code detected:${line.separator} ${debug.lines}</echo>
+      <fail message="Debug code detected. See file: ${debug.output.file}" />
     </then>
   </if>
 </target>

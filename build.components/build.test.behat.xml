@@ -5,7 +5,8 @@ config.
 -->
 <target name="behat"
         description="Run all Behat tests"
-        depends="setup-composer, deploy">
+        depends="setup-composer, deploy"
+        unless="behat.skip">
   <copy file="${project.behat.template}" tofile="${project.behat.config}">
     <filterchain>
       <replacetokens begintoken="${" endtoken="}">

@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <!-- ### Run Behat tests.
 
 Will run the Behat feature tests found in ${behat.features.dir} using the given

@@ -100,8 +100,101 @@ Drush Make and Simpletest support has been sponsored by [DBC](http://www.dbc.dk/
 </a>
 -->
 
-<project name="phing-drupal" default="build">
+<project name="phing-drupal-build" default="build">
 
-  <import file="_build.xml" />
+  <!-- ## Main targets
+    These are the main targets that will build the project.
+    Include this file in your build.xml file for an easy build or, copy
+    and paste the code and customize as needed.
+  -->
+
+  <!-- ### Build project
+
+  Do a complete build of the project by verifying code consistency and and
+  performing static analysis of the code.
+
+  This is the default build target.
+
+  Do not run `docs` for now. Generating documentation eats up memory and build
+  time and is largely obsolete when using GitHub. -->
+  <target name="build" depends="compile-components,
+                                init,
+                                clean,
+                                verify,
+                                analyze" />
+
+  <!-- ### Verify code consistency
+
+  Make sure that our code is clean and functional. -->
+  <target name="verify" depends="compile-components,
+                                 init,
+                                 clean,
+                                 lint-php-custom,
+                                 lint-js-custom,
+                                 lint-css-custom,
+                                 check-php-debug,
+                                 check-js-debug,
+                                 simpletest"/>
+
+  <!-- ### Analyze code
+
+  Perform static analysis of the code to generate statistics, identify potential
+  problems and opportunities for refactorings and make sure that the code
+  complies with coding standards. -->
+  <target name="analyze" depends="compile-components,
+                                  init,
+                                  clean,
+                                  phploc,
+                                  phpmd,
+                                  phpcpd">
+    <!-- Moved inside target to support properties in target name -->
+    <phingcall target="coder-review-d${drupal.version}">
+      <!-- Run the target as if it was executed from the Drupal root
+           directory. -->
+      <property name="project.basedir" value="${project.drupal.dir}"/>
+      <!-- We already have a clean environment so avoid further cleaning. -->
+      <property name="project.cleaned" value="1"/>
+      <!-- Make will run again as a part of the `init` target. We already have
+           a working site so skip that. -->
+      <property name="project.make.skip" value="1"/>
+    </phingcall>
+  </target>
+
+  <!-- ### Generate documentation
+
+  Generate HTML documentation and code browser for the project. -->
+  <target name="docs" depends="compile-components,
+                               init,
+                               clean,
+                               phpdoc,
+                               phpcb" />
+
+  <!-- ### Include all components -->
+  <target name="compile-components">
+
+    <!-- Prepare some variables -->
+    <patternset id="compile.components">
+      <include name="${phing.dir.phing-drupal-build}/build.components/*.xml" />
+    </patternset>
+    <property name="compiled.components.dir"
+              value="${phing.dir.phing-drupal-build}/build.components/cache"/>
+    <property name="compiled.components.file"
+              value="${compiled.components.dir}/build.compiled.xml"/>
+    <delete dir="${compiled.components.dir}"/>
+    <mkdir dir="${compiled.components.dir}" mode="755" />
+    <property name="compiled.components.file"
+              value="${phing.dir.phing-drupal-build}/build.components/cache/build.compiled.xml"/>
+
+    <foreach target="compile-component" param="filename" absparam="absfilename">
+      <fileset refid="build.components"/>
+    </foreach>
+
+    <import file="${compiled.components.file}" />
+  </target>
+
+  <target name="compile-component">
+    <loadfile property="component" file="${absfilename}" />
+    <append text="${component}"  destFile="${compiled.components.file}" />
+  </target>
 
 </project>

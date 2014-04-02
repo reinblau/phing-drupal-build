@@ -66,6 +66,33 @@
                                phpcb" />
 
   <!-- ### Include all components -->
+  <target name="compile-components">
+
+    <!-- Prepare some variables -->
+    <patternset id="compile.components">
+      <include name="${phing.dir.phing-drupal-build}/build.components/*.xml" />
+    </patternset>
+    <property name="compiled.components.dir"
+              value="${phing.dir.phing-drupal-build}/build.components/cache"/>
+    <property name="compiled.components.file"
+              value="${compiled.components.dir}/build.compiled.xml"/>
+    <delete dir="${compiled.components.dir}"/>
+    <mkdir dir="${compiled.components.dir}" mode="755" />
+    <property name="compiled.components.file"
+              value="${phing.dir.phing-drupal-build}/build.components/cache/build.compiled.xml"/>
+
+    <foreach target="compile-component" param="filename" absparam="absfilename">
+      <fileset refid="build.components"/>
+    </foreach>
+
+    <import file="${compiled.components.file}" />
+  </target>
+
+  <target name="compile-component">
+    <loadfile property="component" file="${absfilename}" />
+    <append text="${component}"  destFile="${compiled.components.file}" />
+  </target>
+  <!-- ### Include all components
   <import file="phing-drupal-build/build.components/build.init.xml" />
   <import file="phing-drupal-build/build.components/build.init.clean.xml" />
   <import file="phing-drupal-build/build.components/build.init.filesets.xml" />
@@ -84,6 +111,6 @@
   <import file="phing-drupal-build/build.components/build.deploy.xml" />
   <import file="phing-drupal-build/build.components/build.docs.xml" />
   <import file="phing-drupal-build/build.components/build.test.behat.xml" />
-  <import file="phing-drupal-build/build.components/build.test.simpletest.xml" />
+  <import file="phing-drupal-build/build.components/build.test.simpletest.xml" /> -->
 
 </project>

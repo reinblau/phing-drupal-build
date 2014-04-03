@@ -43,6 +43,7 @@
     <patternset id="contrib">
       <exclude name="**/contrib/**/*.*" />
       <exclude name="**/libraries/**/*.*" />
+      <exclude name="**/omega/**/*.*" />
     </patternset>
 
     <!-- We exclude generated files from We exclude these from code analysis

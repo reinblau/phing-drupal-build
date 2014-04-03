@@ -1,40 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
 
-<!-- ### Run Behat tests.
+<project name="buildtestbehat">
 
-Will run the Behat feature tests found in ${behat.features.dir} using the given
-config.
--->
-<target name="behat"
-        description="Run all Behat tests"
-        depends="setup-composer, deploy"
-        unless="behat.skip">
-  <copy file="${project.behat.template}" tofile="${project.behat.config}">
-    <filterchain>
-      <replacetokens begintoken="${" endtoken="}">
-        <token key="drupal.uri" value="${drupal.uri}"/>
-        <token key="drush.root" value="${drush.root}"/>
-        <token key="drush.uri" value="${drush.uri}"/>
-      </replacetokens>
-    </filterchain>
-  </copy>
-  <exec command="${project.toolsdir}/bin/behat -c ${project.behat.config} -f junit --out ${project.testdir}"
-        dir="${project.behatdir}" passthru="true" />
-</target>
+  <!-- ### Run Behat tests.
+
+  Will run the Behat feature tests found in ${behat.features.dir} using the given
+  config.
+  -->
+  <target name="behat"
+          description="Run all Behat tests"
+          depends="setup-composer, deploy"
+          unless="behat.skip">
+    <copy file="${project.behat.template}" tofile="${project.behat.config}">
+      <filterchain>
+        <replacetokens begintoken="${" endtoken="}">
+          <token key="drupal.uri" value="${drupal.uri}"/>
+          <token key="drush.root" value="${drush.root}"/>
+          <token key="drush.uri" value="${drush.uri}"/>
+        </replacetokens>
+      </filterchain>
+    </copy>
+    <exec command="${project.toolsdir}/bin/behat -c ${project.behat.config} -f junit --out ${project.testdir}"
+          dir="${project.behatdir}" passthru="true" />
+  </target>
 
 
-<!-- ### Setup Composer and use it to install our dependencies -->
-<target name="setup-composer"
-        depends="setup-dirs" >
-  <if>
-    <not>
-      <available file="${project.toolsdir}/composer.phar"/>
-    </not>
-    <then>
-      <php expression="$argv = array('--install-dir', '${project.toolsdir}'); eval('?>'.file_get_contents('https://getcomposer.org/installer'))" />
-    </then>
-  </if>
-  <copy file="${project.builddir}/composer.json" todir="${project.toolsdir}" />
-  <composer command="install" composer="${project.toolsdir}/composer.phar">
-    <arg value="--working-dir=${project.toolsdir}"/>
-  </composer>
-</target>
+  <!-- ### Setup Composer and use it to install our dependencies -->
+  <target name="setup-composer"
+          depends="setup-dirs" >
+    <if>
+      <not>
+        <available file="${project.toolsdir}/composer.phar"/>
+      </not>
+      <then>
+        <php expression="$argv = array('--install-dir', '${project.toolsdir}'); eval('?>'.file_get_contents('https://getcomposer.org/installer'))" />
+      </then>
+    </if>
+    <copy file="${project.builddir}/composer.json" todir="${project.toolsdir}" />
+    <composer command="install" composer="${project.toolsdir}/composer.phar">
+      <arg value="--working-dir=${project.toolsdir}"/>
+    </composer>
+  </target>
+</project>

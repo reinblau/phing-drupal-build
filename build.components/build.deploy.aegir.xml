@@ -1,69 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
 
-<!-- ### Deploy a Drupal site via Aegir
+<project name="builddeployaegir">
 
-This will install the Drupal site via Aegir.
+  <!-- ### Deploy a Drupal site via Aegir
 
-It will use the platform and site names specified in `build.properties`. -->
-<target name="deploy-aegir"
-        depends="init, setup-phing-drush, aegir-create-platform"
-        unless="project.deployed.aegir">
+  This will install the Drupal site via Aegir.
 
-  <if>
-    <not>
-      <available file="${user.home}/.drush/${deploy.aegir.site}.alias.drushrc.php"/>
-    </not>
-    <then>
-      <drush command="provision-save" root="" alias="@${deploy.aegir.site}">
-        <option name="context_type">site</option>
-        <option name="uri">${deploy.aegir.site}</option>
-        <option name="platform">@platform_${deploy.aegir.platform}</option>
-        <option name="server">@server_${deploy.aegir.server}</option>
-        <option name="db_server">@server_${deploy.aegir.server}</option>
-        <option name="profile">${drupal.profile}</option>
-        <option name="client_name">admin</option>
-      </drush>
+  It will use the platform and site names specified in `build.properties`. -->
+  <target name="deploy-aegir"
+          depends="init, setup-phing-drush, aegir-create-platform"
+          unless="project.deployed.aegir">
 
-      <drush command="provision-install" root="" alias="@${deploy.aegir.site}" />
+    <if>
+      <not>
+        <available file="${user.home}/.drush/${deploy.aegir.site}.alias.drushrc.php"/>
+      </not>
+      <then>
+        <drush command="provision-save" root="" alias="@${deploy.aegir.site}">
+          <option name="context_type">site</option>
+          <option name="uri">${deploy.aegir.site}</option>
+          <option name="platform">@platform_${deploy.aegir.platform}</option>
+          <option name="server">@server_${deploy.aegir.server}</option>
+          <option name="db_server">@server_${deploy.aegir.server}</option>
+          <option name="profile">${drupal.profile}</option>
+          <option name="client_name">admin</option>
+        </drush>
 
-      <drush command="hosting-task" root="" alias="@hostmaster">
-        <param>@platform_${deploy.aegir.platform}</param>
-        <param>verify</param>
-      </drush>
+        <drush command="provision-install" root="" alias="@${deploy.aegir.site}" />
 
-      <drush command="hosting-dispatch" root="" alias="@hostmaster" />
+        <drush command="hosting-task" root="" alias="@hostmaster">
+          <param>@platform_${deploy.aegir.platform}</param>
+          <param>verify</param>
+        </drush>
 
-      <drush command="hosting-task" root="" alias="@hostmaster">
-        <param>@${deploy.aegir.site}</param>
-        <param>verify</param>
-      </drush>
-    </then>
-  </if>
+        <drush command="hosting-dispatch" root="" alias="@hostmaster" />
 
-  <!-- Set property to prevent target from being executed multiple times -->
-  <property name="project.deployed.aegir" value="true"/>
-</target>
+        <drush command="hosting-task" root="" alias="@hostmaster">
+          <param>@${deploy.aegir.site}</param>
+          <param>verify</param>
+        </drush>
+      </then>
+    </if>
 
-<!-- ### Create an Aegir platform
+    <!-- Set property to prevent target from being executed multiple times -->
+    <property name="project.deployed.aegir" value="true"/>
+  </target>
 
-This will register the Drupal site with Aegir as a platform.
+  <!-- ### Create an Aegir platform
 
-It will use the platform name specified in `build.properties`. -->
-<target name="aegir-create-platform"
-        depends="init, setup-phing-drush">
-  <if>
-    <not>
-      <available file="${user.home}/.drush/platform_${deploy.aegir.platform}.alias.drushrc.php"/>
-    </not>
-    <then>
-      <drush command="provision-save" root="${project.drupal.dir}" alias="@platform_${deploy.aegir.platform}">
-        <option name="context_type">platform</option>
-      </drush>
+  This will register the Drupal site with Aegir as a platform.
 
-      <drush command="hosting-import" root="" alias="@hostmaster">
-        <param>@platform_${deploy.aegir.platform}</param>
-      </drush>
+  It will use the platform name specified in `build.properties`. -->
+  <target name="aegir-create-platform"
+          depends="init, setup-phing-drush">
+    <if>
+      <not>
+        <available file="${user.home}/.drush/platform_${deploy.aegir.platform}.alias.drushrc.php"/>
+      </not>
+      <then>
+        <drush command="provision-save" root="${project.drupal.dir}" alias="@platform_${deploy.aegir.platform}">
+          <option name="context_type">platform</option>
+        </drush>
 
-      <drush command="hosting-dispatch" root="" alias="@hostmaster" />
-    </then>
-  </if>
-</target>
+        <drush command="hosting-import" root="" alias="@hostmaster">
+          <param>@platform_${deploy.aegir.platform}</param>
+        </drush>
+
+        <drush command="hosting-dispatch" root="" alias="@hostmaster" />
+      </then>
+    </if>
+  </target>
+</project>

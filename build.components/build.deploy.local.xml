@@ -1,35 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
 
-<!-- ### Setup a site
+<project name="builddeploylocal">
 
-Initializes a site that already exists locally. -->
-<target name="deploy-local"
-        depends="init, setup-phing-drush"
-        unless="project.deployed.local">
+  <!-- ### Setup a site
 
-  <!-- Symlink Files -->
-  <echo>Symlinking files folder ${project.basedir}/sites/default/files -> ${build.local.files.directory} </echo>
-  <symlink target="${build.local.files.directory}" link="${project.drupal.dir}/${project.code.dir}/files" />
+  Initializes a site that already exists locally. -->
+  <target name="deploy-local"
+          depends="init, setup-phing-drush"
+          unless="project.deployed.local">
 
-  <!-- Copy DB -->
-  <echo>Copying Database ${project.db.database} to ${project.db.database}_test</echo>
-  <exec command="mysql -u ${project.db.user} -p${project.db.password} -e 'create database ${project.db.database}_test'" />
-  <exec command="mysqldump -u ${project.db.user} -p${project.db.password} ${project.db.database} | mysql -u ${project.db.user} -p${project.db.password} ${project.db.database}_test" />
+    <!-- Symlink Files -->
+    <echo>Symlinking files folder ${project.basedir}/sites/default/files -> ${build.local.files.directory} </echo>
+    <symlink target="${build.local.files.directory}" link="${project.drupal.dir}/${project.code.dir}/files" />
 
-  <!-- Setup settings.php -->
-  <echo>Writing to settings.php</echo>
-  <copy file="${project.basedir}/sites/default/default.settings.php" tofile="${project.basedir}/sites/default/settings.php" overwrite="true">
-    <filterchain>
-      <replaceregexp>
-        <regexp pattern="\$databases = array\(\);" replace="$databases['default']['default'] = array('database' => '${project.db.database}_test','username' => '${project.db.user}','password' => '${project.db.password}','host' => 'localhost','driver' => 'mysql','prefix' => '');" />
-      </replaceregexp>
-    </filterchain>
-  </copy>
+    <!-- Copy DB -->
+    <echo>Copying Database ${project.db.database} to ${project.db.database}_test</echo>
+    <exec command="mysql -u ${project.db.user} -p${project.db.password} -e 'create database ${project.db.database}_test'" />
+    <exec command="mysqldump -u ${project.db.user} -p${project.db.password} ${project.db.database} | mysql -u ${project.db.user} -p${project.db.password} ${project.db.database}_test" />
 
-  <!-- Run db updates -->
-  <echo>Running Database updates</echo>
-  <drush command="updb" assume="yes" />
+    <!-- Setup settings.php -->
+    <echo>Writing to settings.php</echo>
+    <copy file="${project.basedir}/sites/default/default.settings.php" tofile="${project.basedir}/sites/default/settings.php" overwrite="true">
+      <filterchain>
+        <replaceregexp>
+          <regexp pattern="\$databases = array\(\);" replace="$databases['default']['default'] = array('database' => '${project.db.database}_test','username' => '${project.db.user}','password' => '${project.db.password}','host' => 'localhost','driver' => 'mysql','prefix' => '');" />
+        </replaceregexp>
+      </filterchain>
+    </copy>
 
-  <!-- Set a property to indicate the site's been setup -->
-  <property name="project.deployed.local" value="true" />
+    <!-- Run db updates -->
+    <echo>Running Database updates</echo>
+    <drush command="updb" assume="yes" />
 
-</target>
+    <!-- Set a property to indicate the site's been setup -->
+    <property name="project.deployed.local" value="true" />
+
+  </target>
+</project>

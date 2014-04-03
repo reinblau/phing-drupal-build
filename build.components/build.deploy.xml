@@ -1,58 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
 
-<!-- ### (deprecated) Deploy a Drupal site
+<project name="builddeploy">
 
-This is an alias for 'deploy' provided for backward compatibility.
+  <!-- ### (deprecated) Deploy a Drupal site
 
-Please use 'deploy' instead! -->
-<target name="site-install" depends="deploy" hidden="true" />
+  This is an alias for 'deploy' provided for backward compatibility.
 
-<!-- ### Deploy a Drupal site
+  Please use 'deploy' instead! -->
+  <target name="site-install" depends="deploy" hidden="true" />
 
-This will install a Drupal site for a given installation profile.
+  <!-- ### Deploy a Drupal site
 
-Configuration of which installation profile and how to deploy are in done in
-`build.properties`. -->
-<target name="deploy"
-        depends="init, setup-phing-drush"
-        unless="project.installed">
+  This will install a Drupal site for a given installation profile.
 
-  <if>
-    <equals arg1="${deploy.type}" arg2="drush"/>
-    <then>
-      <phingcall target="deploy-drush" />
-    </then>
+  Configuration of which installation profile and how to deploy are in done in
+  `build.properties`. -->
+  <target name="deploy"
+          depends="init, setup-phing-drush"
+          unless="project.installed">
 
-    <elseif>
-      <equals arg1="${deploy.type}" arg2="local"/>
+    <if>
+      <equals arg1="${deploy.type}" arg2="drush"/>
       <then>
-        <phingcall target="deploy-local"/>
+        <phingcall target="deploy-drush" />
       </then>
-    </elseif>
 
-    <elseif>
-      <equals arg1="${deploy.type}" arg2="aegir"/>
-      <then>
-        <phingcall target="deploy-aegir">
-          <property name="drush.bin" value="${deploy.aegir.drush}"/>
-        </phingcall>
+      <elseif>
+        <equals arg1="${deploy.type}" arg2="local"/>
+        <then>
+          <phingcall target="deploy-local"/>
+        </then>
+      </elseif>
 
-        <!-- Now that the site is installed, we need to set drush.uri so that drush
-             commands against the site succeeed.
+      <elseif>
+        <equals arg1="${deploy.type}" arg2="aegir"/>
+        <then>
+          <phingcall target="deploy-aegir">
+            <property name="drush.bin" value="${deploy.aegir.drush}"/>
+          </phingcall>
 
-             TODO: this really should set drush.alias so that more complex Aegir
-             configurations will work, but that isn't yet supported:
+          <!-- Now that the site is installed, we need to set drush.uri so that drush
+               commands against the site succeeed.
 
-             https://drupal.org/node/2139219
-        -->
-        <property name="drush.uri" value="${drupal.uri}"/>
-      </then>
-    </elseif>
+               TODO: this really should set drush.alias so that more complex Aegir
+               configurations will work, but that isn't yet supported:
 
-    <else>
-      <fail msg="Unknown deploy.type = ${deploy.type}" />
-    </else>
-  </if>
+               https://drupal.org/node/2139219
+          -->
+          <property name="drush.uri" value="${drupal.uri}"/>
+        </then>
+      </elseif>
 
-  <!-- Set property to prevent target from being executed multiple times -->
-  <property name="project.installed" value="true"/>
-</target>
+      <else>
+        <fail msg="Unknown deploy.type = ${deploy.type}" />
+      </else>
+    </if>
+
+    <!-- Set property to prevent target from being executed multiple times -->
+    <property name="project.installed" value="true"/>
+  </target>
+</project>

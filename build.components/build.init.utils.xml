@@ -1,72 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
 
-<!-- ### Download and enable a project/module -->
-<target name="enable-module"
-        depends="setup-phing-drush, deploy">
-  <!-- If project is not set then we assume that the module name is also
-       the project name. -->
-  <property name="project" value="${module}" override="no"/>
+<project name="buildinitutils">
 
-  <!-- If the module is not already available then download it -->
-  <drush command="pm-list" returnProperty="modules.available"/>
-  <php function="strpos" returnProperty="module.available">
-    <param>${modules.available}</param>
-    <param>${module}</param>
-  </php>
-  <if>
-    <not><istrue value="${module.available}"/></not>
-    <then>
-      <!-- Download specific version if specified -->
-      <condition property="download" value="${project}-${project.version}">
-        <isset property="project.version"/>
-      </condition>
-      <property name="download" value="${project}" override="false"/>
+  <!-- ### Download and enable a project/module -->
+  <target name="enable-module"
+          depends="setup-phing-drush, deploy">
+    <!-- If project is not set then we assume that the module name is also
+         the project name. -->
+    <property name="project" value="${module}" override="no"/>
 
-      <drush command="pm-download" assume="yes">
-        <param>${download}</param>
-      </drush>
-    </then>
-  </if>
+    <!-- If the module is not already available then download it -->
+    <drush command="pm-list" returnProperty="modules.available"/>
+    <php function="strpos" returnProperty="module.available">
+      <param>${modules.available}</param>
+      <param>${module}</param>
+    </php>
+    <if>
+      <not><istrue value="${module.available}"/></not>
+      <then>
+        <!-- Download specific version if specified -->
+        <condition property="download" value="${project}-${project.version}">
+          <isset property="project.version"/>
+        </condition>
+        <property name="download" value="${project}" override="false"/>
 
-  <!-- Enable the module -->
-  <drush command="pm-enable" assume="yes">
-    <param>${module}</param>
-  </drush>
-</target>
+        <drush command="pm-download" assume="yes">
+          <param>${download}</param>
+        </drush>
+      </then>
+    </if>
 
-<!-- ### Download and apply a patch -->
-<target name="apply-http-patch">
-  <php function="basename" returnProperty="patch.file">
-    <param>${patch.url}</param>
-  </php>
+    <!-- Enable the module -->
+    <drush command="pm-enable" assume="yes">
+      <param>${module}</param>
+    </drush>
+  </target>
 
-  <!-- If patch has already been downloaded then we assume it has also been
-       applied -->
-  <if>
-    <not><available file="${project.toolsdir}/${patch.file}"/></not>
-    <then>
-      <httpget url="${patch.url}"
-               dir="${project.toolsdir}"
-               proxy="${phing.httpget.proxy}" />
-      <patch patchfile="${project.toolsdir}/${patch.file}"
-             dir="${patch.dir}" haltonfailure="true"/>
-    </then>
-  </if>
-</target>
+  <!-- ### Download and apply a patch -->
+  <target name="apply-http-patch">
+    <php function="basename" returnProperty="patch.file">
+      <param>${patch.url}</param>
+    </php>
 
-<!-- ### Clone a git repository -->
-<target name="setup-git-repo">
-  <!-- Only clone if repository does not exist already -->
-  <if>
-    <not><available file="${repo.dir}" /></not>
-    <then>
-      <!-- Set revision to HEAD if not already defined -->
-      <property name="repo.revision" value="HEAD" override="false"/>
+    <!-- If patch has already been downloaded then we assume it has also been
+         applied -->
+    <if>
+      <not><available file="${project.toolsdir}/${patch.file}"/></not>
+      <then>
+        <httpget url="${patch.url}"
+                 dir="${project.toolsdir}"
+                 proxy="${phing.httpget.proxy}" />
+        <patch patchfile="${project.toolsdir}/${patch.file}"
+               dir="${patch.dir}" haltonfailure="true"/>
+      </then>
+    </if>
+  </target>
 
-      <echo>Cloning ${repo.url} ${repo.revision} into ${repo.dir}</echo>
-      <!-- The [`gitclone` task](http://www.phing.info/docs/guide/stable/chapters/appendixes/AppendixC-OptionalTasks.html#GitCloneTask)
-           does not seem to work. Use exec instead. -->
-      <exec command="git clone ${repo.url} ${repo.dir}" />
-      <exec command="git checkout ${repo.revision}" dir="${repo.dir}"/>
-    </then>
-  </if>
-</target>
+  <!-- ### Clone a git repository -->
+  <target name="setup-git-repo">
+    <!-- Only clone if repository does not exist already -->
+    <if>
+      <not><available file="${repo.dir}" /></not>
+      <then>
+        <!-- Set revision to HEAD if not already defined -->
+        <property name="repo.revision" value="HEAD" override="false"/>
+
+        <echo>Cloning ${repo.url} ${repo.revision} into ${repo.dir}</echo>
+        <!-- The [`gitclone` task](http://www.phing.info/docs/guide/stable/chapters/appendixes/AppendixC-OptionalTasks.html#GitCloneTask)
+             does not seem to work. Use exec instead. -->
+        <exec command="git clone ${repo.url} ${repo.dir}" />
+        <exec command="git checkout ${repo.revision}" dir="${repo.dir}"/>
+      </then>
+    </if>
+  </target>
+</project>

@@ -1,25 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
 
-<!-- ### Deploy a Drupal site via Drush
+<project name="builddeploydrush">
 
-This will install the Drupal site via 'drush site-install'.
+  <!-- ### Deploy a Drupal site via Drush
 
-It will use the database credentials specified in `build.properties`. -->
-<target name="deploy-drush"
-        depends="init, setup-phing-drush"
-        unless="project.deployed.drush">
-  <drush command="site-install" assume="yes">
-    <option name="db-url">${deploy.drush.db}</option>
-    <param>${drupal.profile}</param>
-  </drush>
-  <!-- Fix permissions for the default site directory and settings. The
-       owner must be able to delete the directories during subsequent
-       builds. -->
-  <chmod file="${project.drupal.dir}/sites/default/"
-         mode="0755" failonerror="true"/>
-  <chmod file="${project.drupal.dir}/sites/default/default.settings.php"
-         mode="0755" failonerror="true"/>
+  This will install the Drupal site via 'drush site-install'.
 
-  <!-- Set property to prevent target from being executed multiple times -->
-  <property name="project.deployed.drush" value="true"/>
-</target>
+  It will use the database credentials specified in `build.properties`. -->
+  <target name="deploy-drush"
+          depends="init, setup-phing-drush"
+          unless="project.deployed.drush">
+    <drush command="site-install" assume="yes">
+      <option name="db-url">${deploy.drush.db}</option>
+      <param>${drupal.profile}</param>
+    </drush>
+    <!-- Fix permissions for the default site directory and settings. The
+         owner must be able to delete the directories during subsequent
+         builds. -->
+    <chmod file="${project.drupal.dir}/sites/default/"
+           mode="0755" failonerror="true"/>
+    <chmod file="${project.drupal.dir}/sites/default/default.settings.php"
+           mode="0755" failonerror="true"/>
 
+    <!-- Set property to prevent target from being executed multiple times -->
+    <property name="project.deployed.drush" value="true"/>
+  </target>
+
+</project>

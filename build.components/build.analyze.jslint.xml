@@ -1,102 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
 
-<!-- ### Javascript linting
+<project name="buildanalyzejslint">
 
-Checks code against [jslint](http://www.jslint.com/) to assure a coding
-standard is followed and detect potential problems. By default
-[jslint´](https://github.com/mikewest/JSLint) is used. -->
-<target name="lint-js"
-        description="Check all Javascript files using JSlint"
-        depends="init, setup-jslint4java, setup-jslint"
-        unless="jslint.all.skip">
-  <foreach target="jslint-file" param="filename" absparam="absfilename">
-    <fileset refid="src.js"/>
-  </foreach>
-</target>
+  <!-- ### Javascript linting
 
-<target name="lint-js-custom"
-        description="Check custom Javascript files using JSlint"
-        depends="init, setup-jslint4java, setup-jslint"
-        unless="jslint.custom.skip">
-  <foreach target="jslint-file" param="filename" absparam="absfilename">
-    <fileset refid="src.js.custom"/>
-  </foreach>
-</target>
+  Checks code against [jslint](http://www.jslint.com/) to assure a coding
+  standard is followed and detect potential problems. By default
+  [jslint´](https://github.com/mikewest/JSLint) is used. -->
+  <target name="lint-js"
+          description="Check all Javascript files using JSlint"
+          depends="init, setup-jslint4java, setup-jslint"
+          unless="jslint.all.skip">
+    <foreach target="jslint-file" param="filename" absparam="absfilename">
+      <fileset refid="src.js"/>
+    </foreach>
+  </target>
 
-<!-- #### jslint a file
+  <target name="lint-js-custom"
+          description="Check custom Javascript files using JSlint"
+          depends="init, setup-jslint4java, setup-jslint"
+          unless="jslint.custom.skip">
+    <foreach target="jslint-file" param="filename" absparam="absfilename">
+      <fileset refid="src.js.custom"/>
+    </foreach>
+  </target>
 
-No need to run `init` or setup targets here. This target should only be called
-from parent `lint-js` targets. -->
-<target name="jslint-file">
-  <echo>Linting file: ${absfilename}</echo>
+  <!-- #### jslint a file
 
-  <!-- Execute jslint4java and return the result in checkstyle format-->
-  <exec command="java -jar ${jslint4java.file}
-                 --jslint ${jslint.file} --report checkstyle ${absfilename}"
-        outputProperty="report" />
+  No need to run `init` or setup targets here. This target should only be called
+  from parent `lint-js` targets. -->
+  <target name="jslint-file">
+    <echo>Linting file: ${absfilename}</echo>
 
-  <!-- Print the result to a file.
-       Replace / with - in path to create legal filenames in the format
-       `checkstyle-jslint-dir1-dir2-file.js.xml`. -->
-  <php function="str_replace" returnProperty="filename.normalized">
-    <param value="/" />
-    <param value="-" />
-    <param value="${filename}" />
-  </php>
-  <delete file="${project.logdir}/checkstyle-jslint-${filename.normalized}.xml" />
-  <append text="${report}"  destFile="${project.logdir}/checkstyle-jslint-${filename.normalized}.xml" />
-</target>
+    <!-- Execute jslint4java and return the result in checkstyle format-->
+    <exec command="java -jar ${jslint4java.file}
+                   --jslint ${jslint.file} --report checkstyle ${absfilename}"
+          outputProperty="report" />
 
-<!-- #### Setup jslint4java -->
-<target name="setup-jslint4java"
-        depends="init"
-        unless="project.jslint4java.setup">
-  <property name="jslint4java.dir"
-            value="${project.toolsdir}/jslint4java" />
-  <php function="basename" returnProperty="jslint4java.basename">
-    <param value="${jslint4java.url}" />
-    <!-- We assume that the version of jslint4java used is a distribution
-         where the filename ends in `-dist.zip` -->
-    <param value="-dist.zip" />
-  </php>
+    <!-- Print the result to a file.
+         Replace / with - in path to create legal filenames in the format
+         `checkstyle-jslint-dir1-dir2-file.js.xml`. -->
+    <php function="str_replace" returnProperty="filename.normalized">
+      <param value="/" />
+      <param value="-" />
+      <param value="${filename}" />
+    </php>
+    <delete file="${project.logdir}/checkstyle-jslint-${filename.normalized}.xml" />
+    <append text="${report}"  destFile="${project.logdir}/checkstyle-jslint-${filename.normalized}.xml" />
+  </target>
 
-  <!-- Download and unpack jslint4java -->
-  <mkdir dir="${jslint4java.dir}" />
-  <php function="basename" returnProperty="jslint4java.zipfile">
-    <param value="${jslint4java.url}" />
-  </php>
-  <httpget url="${jslint4java.url}"
-           dir="${jslint4java.dir}"
-           proxy="${phing.httpget.proxy}" />
-  <unzip file="${jslint4java.dir}/${jslint4java.zipfile}"
-         todir="${jslint4java.dir}" />
+  <!-- #### Setup jslint4java -->
+  <target name="setup-jslint4java"
+          depends="init"
+          unless="project.jslint4java.setup">
+    <property name="jslint4java.dir"
+              value="${project.toolsdir}/jslint4java" />
+    <php function="basename" returnProperty="jslint4java.basename">
+      <param value="${jslint4java.url}" />
+      <!-- We assume that the version of jslint4java used is a distribution
+           where the filename ends in `-dist.zip` -->
+      <param value="-dist.zip" />
+    </php>
 
-  <!-- Other targets use this property to determine the location of the
-       `jslint4java.jar` file -->
-  <property name="jslint4java.file"
-value="${jslint4java.dir}/${jslint4java.basename}/${jslint4java.basename}.jar"/>
+    <!-- Download and unpack jslint4java -->
+    <mkdir dir="${jslint4java.dir}" />
+    <php function="basename" returnProperty="jslint4java.zipfile">
+      <param value="${jslint4java.url}" />
+    </php>
+    <httpget url="${jslint4java.url}"
+             dir="${jslint4java.dir}"
+             proxy="${phing.httpget.proxy}" />
+    <unzip file="${jslint4java.dir}/${jslint4java.zipfile}"
+           todir="${jslint4java.dir}" />
 
-  <!-- Set property to prevent unnecessary additional invocations of this
-       target -->
-  <property name="project.jslint4java.setup" value="true" />
-</target>
+    <!-- Other targets use this property to determine the location of the
+         `jslint4java.jar` file -->
+    <property name="jslint4java.file"
+  value="${jslint4java.dir}/${jslint4java.basename}/${jslint4java.basename}.jar"/>
 
-<!-- #### Setup jslint -->
+    <!-- Set property to prevent unnecessary additional invocations of this
+         target -->
+    <property name="project.jslint4java.setup" value="true" />
+  </target>
 
-<target name="setup-jslint"
-        depends="init"
-        unless="project.jslint.setup">
-  <phingcall target="setup-git-repo">
-    <property name="repo.dir" value="${project.toolsdir}/jslint"/>
-    <property name="repo.url" value="${jslint.repository.url}" />
-  </phingcall>
+  <!-- #### Setup jslint -->
 
-  <!-- Other targets use this property to determine the location of the jslint
-       file -->
-  <property name="jslint.file"
-            value="${project.toolsdir}/jslint/${jslint.file}"
-            override="true" />
+  <target name="setup-jslint"
+          depends="init"
+          unless="project.jslint.setup">
+    <phingcall target="setup-git-repo">
+      <property name="repo.dir" value="${project.toolsdir}/jslint"/>
+      <property name="repo.url" value="${jslint.repository.url}" />
+    </phingcall>
 
-  <!-- Set property to prevent unnecessary additional invocations of this
-       target -->
-  <property name="project.jslint.setup" value="true" />
-</target>
+    <!-- Other targets use this property to determine the location of the jslint
+         file -->
+    <property name="jslint.file"
+              value="${project.toolsdir}/jslint/${jslint.file}"
+              override="true" />
+
+    <!-- Set property to prevent unnecessary additional invocations of this
+         target -->
+    <property name="project.jslint.setup" value="true" />
+  </target>
+</project>

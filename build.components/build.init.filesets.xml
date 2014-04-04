@@ -44,6 +44,9 @@
       <exclude name="**/contrib/**/*.*" />
       <exclude name="**/libraries/**/*.*" />
       <exclude name="**/omega/**/*.*" />
+      <exclude name="**/zen/**/*.*" />
+      <exclude name="**/basic/**/*.*" />
+      <exclude name="**/adaptivetheme/**/*.*" />
     </patternset>
 
     <!-- We exclude generated files from We exclude these from code analysis

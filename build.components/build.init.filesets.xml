@@ -87,7 +87,7 @@
     </fileset>
 
     <!-- All CSS files -->
-    <fileset id="src.css" dir="${project.basedir}">
+    <fileset id="src.css" dir="${project.drupal.dir}">
       <patternset refid="css" />
     </fileset>
 

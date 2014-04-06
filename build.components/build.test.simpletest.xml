@@ -32,8 +32,8 @@ Execution of this target can be skipped by setting the
         <!-- Build a regular expression to match test groups based on the
              set properties. The expression should be in the format
              `^\s?(prefix1|prefix2|prefix3)_`. -->
-        <php expression="'^\s?(' . preg_replace('/(\s+|\s*,\s*)/', '|', '${project.code.prefix}') .').*'"
-             returnProperty="project.code.prefix.regex"/>
+        <php expression="'^\s?(' . preg_replace('/(\s+|\s*,\s*)/', '|', '${drupal.code.prefix}') .').*'"
+             returnProperty="drupal.code.prefix.regex"/>
 
         <!-- Load the list of tests but keep only the test groups matching our
              prefixes. -->
@@ -41,7 +41,7 @@ Execution of this target can be skipped by setting the
                   file="${project.logdir}/tests.txt">
           <filterchain>
             <linecontainsregexp>
-              <regexp pattern="${project.code.prefix.regex}" ignoreCase="true"/>
+              <regexp pattern="${drupal.code.prefix.regex}" ignoreCase="true"/>
             </linecontainsregexp>
           </filterchain>
         </loadfile>

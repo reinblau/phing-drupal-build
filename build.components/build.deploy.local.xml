@@ -12,11 +12,11 @@
     <!-- Symlink Files -->
     <if>
       <not>
-        <available file="${project.drupal.dir}/${project.code.dir}/files"/>
+        <available file="${project.drupal.dir}/sites/default/files"/>
       </not>
       <then>
-        <echo>Symlinking files folder ${project.basedir}/sites/default/files -> ${build.local.files.directory} </echo>
-        <symlink target="${build.local.files.directory}" link="${project.drupal.dir}/${project.code.dir}/files" />
+        <echo>Symlinking files folder ${project.drupal.dir}/sites/default/files -> ${build.local.files.directory} </echo>
+        <symlink target="${build.local.files.directory}" link="${project.drupal.dir}/sites/default/files" />
       </then>
     </if>
 

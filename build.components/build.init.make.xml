@@ -36,7 +36,7 @@
             <!-- Download the appropriate version of Drupal -->
             <drush command="dl" assume="yes">
               <param>drupal-${drupal.version}</param>
-              <option name="drupal-project-rename">${drupal.make.dir}</option>
+              <option name="drupal-project-rename">${project.drupal.dir}</option>
             </drush>
 
             <!-- Make the project in the project code directory. If using
@@ -44,7 +44,7 @@
                  faster and easier when using the minimal profile. -->
             <drush command="make" assume="yes">
               <param>${drupal.make.file}</param>
-              <option name="contrib-destination">${drupal.make.dir}/${project.code.dir}</option>
+              <option name="contrib-destination">${project.sitesdir}</option>
               <option name="no-core"/>
             </drush>
 

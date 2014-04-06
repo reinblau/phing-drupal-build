@@ -38,7 +38,6 @@
           <phingcall target="deploy-aegir">
             <property name="drush.bin" value="${deploy.aegir.drush}"/>
           </phingcall>
-
           <!-- Now that the site is installed, we need to set drush.uri so that drush
                commands against the site succeeed.
 
@@ -48,6 +47,13 @@
                https://drupal.org/node/2139219
           -->
           <property name="drush.uri" value="${drupal.uri}"/>
+        </then>
+      </elseif>
+
+      <elseif>
+        <equals arg1="${deploy.type}" arg2="custom"/>
+        <then>
+          <phingcall target="deploy-custom"/>
         </then>
       </elseif>
 

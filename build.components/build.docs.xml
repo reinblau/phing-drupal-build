@@ -8,7 +8,8 @@
 
   Uses [phpDocumentor](http://www.phpdoc.org/) to generate documentation. -->
   <target name="phpdoc"
-          description="Generate API documentation using phpDocumentor">
+          description="Generate API documentation using phpDocumentor"
+          unless="phpdoc.skip">
     <mkdir dir="${project.buildir}/api"/>
     <phpdoc title="API Documentation"
             destdir="${project.builddir}/api"
@@ -25,7 +26,8 @@
   [PHP_CodeBrowser](https://github.com/Mayflower/PHP_CodeBrowser). -->
   <target name="phpcb"
           description="Aggregate tool output with PHP_CodeBrowser"
-          depends="init">
+          depends="init"
+          unless="phpcb.skip">
     <mkdir dir="${project.builddir}/code-browser"/>
     <!-- There is no Phing target for PHP CodeBrowser so do a plain
          execute. -->
@@ -42,7 +44,8 @@
   To use this task you mush have a version of Phrocco with support for XML
   parsing installed. The task is primarily for template developers. -->
    <target name="phrocco"
-           depends="clean">
+           depends="clean"
+           unless="phrocco.skip">
      <!-- Determine current branch -->
      <exec command="git status --branch --short"
            outputProperty="phrocco.code.status" />

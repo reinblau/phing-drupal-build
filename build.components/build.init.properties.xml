@@ -25,6 +25,9 @@
       <param value="${phing.file}"/>
     </php>
 
+    <!-- This is the base directory where the build is being run from
+         We use this as a base point to resolve some of the relative paths
+         that will be coming from the properties file(s) -->
     <property name="project.basedir" value="${phing.dir}" />
 
     <!-- Use condition instead of unless property as we cannot unset properties in Phing -->
@@ -47,13 +50,13 @@
           <available file="${project.basedir}/build.default.properties"/>
           <then>
             <property name="project.properties.file"
-                      value="${phing.dir}/build.default.properties" />
+                      value="${project.basedir}/build.default.properties" />
           </then>
           <elseif>
             <available file="${project.basedir}/phing-drupal-build/build.default.properties"/>
             <then>
               <property name="project.properties.file"
-                        value="${phing.dir}/phing-drupal-build/build.default.properties" />
+                        value="${project.basedir}/phing-drupal-build/build.default.properties" />
             </then>
           </elseif>
           <else>
@@ -102,7 +105,7 @@
     </if>
 
     <property name="project.sitesdir"
-              value="${project.drupal.dir}/${project.code.dir}" />
+              value="${project.drupal.dir}/${drupal.code.dir}" />
     <property name="project.builddir"
               value="${project.basedir}/build" />
     <property name="project.toolsdir"

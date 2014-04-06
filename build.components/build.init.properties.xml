@@ -107,7 +107,7 @@
     <property name="project.sitesdir"
               value="${project.drupal.dir}/${drupal.code.dir}" />
     <property name="project.builddir"
-              value="${project.basedir}/build" />
+              value="${project.basedir}" />
     <property name="project.toolsdir"
               value="${project.builddir}/tools" />
     <property name="project.coveragedir"

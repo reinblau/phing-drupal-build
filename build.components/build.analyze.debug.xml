@@ -46,18 +46,23 @@
       <fileset refid="${debug.fileset}"/>
     </foreach>
 
-    <loadfile property="debug.lines" file="${debug.output.file}" />
-
-    <!-- Break if it's configured to when debug code is detected -->
     <if>
-      <and>
-        <not>
-          <equals arg1="${debug.lines}" arg2="" />
-        </not>
-        <istrue value="${checkdebug.break}"/>
-      </and>
+      <available file="${debug.output.file}"/>
       <then>
-        <fail message="Debug code detected. See file: ${debug.output.file}" />
+        <loadfile property="debug.lines" file="${debug.output.file}" />
+
+        <!-- Break if it's configured to when debug code is detected -->
+        <if>
+          <and>
+            <not>
+              <equals arg1="${debug.lines}" arg2="" />
+            </not>
+            <istrue value="${checkdebug.break}"/>
+          </and>
+          <then>
+            <fail message="Debug code detected. See file: ${debug.output.file}" />
+          </then>
+        </if>
       </then>
     </if>
   </target>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="buildanalyzephp">
+
+  <!-- ### PHP linting
+
+  Check files for syntax errors. -->
+  <target name="lint-php"
+          description="Check all PHP files for syntax errors using PHPLint"
+          depends="init"
+          unless="phplint.all.skip">
+    <phplint haltonfailure="true">
+      <fileset refid="src.php" />
+    </phplint>
+  </target>
+
+  <target name="lint-php-custom"
+          description="Check custom PHP files for syntax errors using PHPLint"
+          depends="init"
+          unless="phplint.custom.skip">
+    <phplint haltonfailure="true">
+      <fileset refid="src.php.custom" />
+    </phplint>
+  </target>
+
+  <!-- ### Detect code mess
+
+  Uses [PHPMD](http://phpmd.org/) to detect code mess and look for potential
+  problems. -->
+  <target name="phpmd"
+          description="Generate pmd.xml using PHPMD"
+          depends="init"
+          unless="phpmd.skip">
+    <!-- We do not use the unusedcode ruleset as Drupal hook implementations
+         usually are declared with all arguements but may not use them
+         all. -->
+    <phpmd rulesets="codesize,naming,design">
+      <fileset refid="src.php.custom" />
+      <formatter type="xml" outfile="${project.logdir}/pmd.xml"/>
+    </phpmd>
+  </target>
+
+  <!-- ### Detect potential copy/pasting
+
+  Uses [phpcpd](https://github.com/sebastianbergmann/phpcpd) to detect duplicate
+  code. This indicates potential refactorings.-->
+  <target name="phpcpd"
+          description="Generate pmd-cpd.xml using phpcpd"
+          depends="init"
+          unless="phpcpd.skip">
+    <phpcpd>
+      <fileset refid="src.php.custom" />
+      <formatter type="pmd" outfile="${project.logdir}/pmd-cpd.xml"/>
+    </phpcpd>
+  </target>
+
+  <!-- ### Generate code statistics
+
+  Measures the size of the project using
+  [phploc](http://sebastianbergmann.github.com/phploc/) and generates
+  statistics. -->
+    <target name="phploc"
+            description="Generate phploc.csv using phploc"
+            depends="init"
+            unless="phploc.skip">
+      <!-- Suffixes should be the same as included in the
+           src.php filesets -->
+      <phploc reportType="csv"
+              reportName="phploc" reportDirectory="${project.logdir}"
+              suffixes="php,module,inc,install,profile,test" countTests="true">
+        <fileset refid="src.php.custom" />
+      </phploc>
+    </target>
+
+  <!-- ### Review code using PHP_CodeSniffer
+
+  The purpose and outcome of this target is the same as the coder-review
+  targets. In general [PHP_CodeSniffer](http://pear.php.net/package/PHP_CodeSniffer/)
+  is faster to execute but there does not seem to be a complete ruleset which
+  covers all of the
+  [Drupal coding standards](http://drupal.org/coding-standards).
+
+  Consequently `coder-review-d6/7` and not `phpcs` is used for the main targets.
+  -->
+  <target name="phpcs"
+          description="Generate checkstyle.xml using PHP_CodeSniffer"
+          depends="init"
+          unless="phpcs.skip">
+    <!-- Clone a repository containing Drupal code guidelines for
+         PHP_CodeSniffer. -->
+    <phingcall target="setup-git-repo">
+      <property name="repo.dir" value="${project.toolsdir}/drupalcs"/>
+      <property name="repo.url" value="${phpcs.drupalcs.repository.url}" />
+    </phingcall>
+    <!-- There is no Phing task for PHP Codesniffer in v2.4.6.
+         It's coming for v2.5. Execute while we wait. -->
+    <exec command="phpcs --report=checkstyle
+                  --report-file=${project.logdir}/checkstyle-codesniffer.xml
+                  --standard=${project.toolsdir}/drupalcs/ruleset.xml
+                  --extensions=php,inc
+                  --ignore=*/contrib/*,*/*.features.*,*/*.field_group.inc,*/*.layout.*,*/*.pages_default.*,*/*.panels_default.*,*/*strongarm.inc,*/*.views_default.inc
+                  ${project.sitesdir}"
+          logoutput="true" />
+  </target>
+</project>

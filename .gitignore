@@ -1,4 +1,5 @@
 build.properties
+composer.phar
 coverage/*
 logs/*
 tests/*

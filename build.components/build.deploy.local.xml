@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="builddeploylocal">
+
+  <!-- ### Setup a site
+
+  Initializes a site that already exists locally. -->
+  <target name="deploy-local"
+          depends="init, setup-phing-drush"
+          unless="project.deployed.local">
+
+    <!-- Symlink Files -->
+    <if>
+      <not>
+        <available file="${project.drupal.dir}/sites/default/files"/>
+      </not>
+      <then>
+        <echo>Symlinking files folder ${project.drupal.dir}/sites/default/files -> ${build.local.files.directory} </echo>
+        <symlink target="${build.local.files.directory}" link="${project.drupal.dir}/sites/default/files" />
+      </then>
+    </if>
+
+    <!-- Fix permissions for the default site directory and settings. The
+         owner must be able to delete the directories during subsequent
+         builds. -->
+    <chmod file="${project.drupal.dir}/sites/default/"
+           mode="0755" failonerror="true"/>
+    <chmod file="${project.drupal.dir}/sites/default/default.settings.php"
+           mode="0755" failonerror="true"/>
+
+    <!-- Copy DB -->
+    <echo>Copying Database ${deploy.local.db.database} to ${deploy.local.db.database}_test</echo>
+    <exec command="mysql --verbose -u ${deploy.local.db.user} -p${deploy.local.db.password} -e 'drop database if exists ${deploy.local.db.database}_test; create database ${deploy.local.db.database}_test'" />
+    <exec command="mysqldump -u ${deploy.local.db.user} -p${deploy.local.db.password} ${deploy.local.db.database} | mysql -u ${deploy.local.db.user} -p${deploy.local.db.password} ${deploy.local.db.database}_test" />
+
+    <!-- Setup settings.php -->
+    <if>
+      <not>
+        <available file="${project.drupal.dir}/sites/default/settings.php"/>
+      </not>
+      <then>
+        <echo>Writing to settings.php</echo>
+        <copy file="${project.drupal.dir}/sites/default/default.settings.php" tofile="${project.drupal.dir}/sites/default/settings.php" overwrite="true">
+          <filterchain>
+            <replaceregexp>
+              <regexp pattern="\$databases = array\(\);" replace="$databases['default']['default'] = array('database' => '${deploy.local.db.database}_test','username' => '${deploy.local.db.user}','password' => '${deploy.local.db.password}','host' => 'localhost','driver' => 'mysql','prefix' => '');" />
+            </replaceregexp>
+          </filterchain>
+        </copy>
+      </then>
+    </if>
+
+    <!-- Run db updates -->
+    <echo>Running Database updates</echo>
+    <drush command="updb" assume="yes" />
+
+    <!-- Set a property to indicate the site's been setup -->
+    <property name="project.deployed.local" value="true" />
+
+  </target>
+</project>

@@ -2,6 +2,11 @@
 
 <project name="buildanalyzedebug">
 
+  <!-- Include composer´s autoload, since pear.phpunit.de was shut down on on December 31, 2014,
+  this affects PHPUNIT, PHPCPD and PHPLOC.
+  See https://github.com/sebastianbergmann/phpunit/wiki/End-of-Life-for-PEAR-Installation-Method-->
+  <php expression="include('${user.home}/.composer/vendor/autoload.php')"/>
+
   <!-- ### Debug code detection
 
   Code should not call functions which are usually used for debugging.
